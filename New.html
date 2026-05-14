@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meal & Bazar Manager</title>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial,sans-serif;
+}
+
+body{
+    background:#0f172a;
+    color:white;
+    padding:20px;
+}
+
+.container{
+    max-width:900px;
+    margin:auto;
+}
+
+h1{
+    margin-bottom:20px;
+    text-align:center;
+}
+
+.card{
+    background:#1e293b;
+    padding:20px;
+    border-radius:12px;
+    margin-bottom:20px;
+}
+
+input,select{
+    width:100%;
+    padding:12px;
+    margin-top:10px;
+    border:none;
+    border-radius:8px;
+    background:#334155;
+    color:white;
+}
+
+button{
+    padding:12px 16px;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+    margin-top:10px;
+    font-weight:bold;
+}
+
+.btn-green{
+    background:#22c55e;
+    color:black;
+}
+
+.btn-red{
+    background:#ef4444;
+    color:white;
+}
+
+.row{
+    display:flex;
+    gap:10px;
+}
+
+.row input{
+    flex:1;
+}
+
+.person{
+    background:#334155;
+    padding:15px;
+    border-radius:10px;
+    margin-top:10px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+.actions{
+    display:flex;
+    gap:10px;
+}
+
+.small{
+    font-size:14px;
+    color:#cbd5e1;
+    margin-top:5px;
+}
+
+.summary{
+    margin-top:10px;
+    background:#334155;
+    padding:12px;
+    border-radius:10px;
+}
+
+@media(max-width:600px){
+    .person{
+        flex-direction:column;
+        align-items:flex-start;
+        gap:10px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>Meal & Bazar Manager</h1>
+
+<!-- ADD PERSON -->
+<div class="card">
+
+<h2>Add Person</h2>
+
+<input type="text" id="personName" placeholder="Enter name">
+
+<button class="btn-green" onclick="addPerson()">
+Add Person
+</button>
+
+</div>
+
+<!-- DEPOSIT -->
+<div class="card">
+
+<h2>Deposit Money</h2>
+
+<select id="depositPerson"></select>
+
+<input type="number" id="depositAmount" placeholder="Amount">
+
+<button class="btn-green" onclick="depositMoney()">
+Add Deposit
+</button>
+
+</div>
+
+<!-- MEAL -->
+<div class="card">
+
+<h2>Add Meals</h2>
+
+<select id="mealPerson"></select>
+
+<div class="row">
+<input type="number" id="breakfast" placeholder="Breakfast" value="0">
+<input type="number" id="lunch" placeholder="Lunch" value="0">
+<input type="number" id="dinner" placeholder="Dinner" value="0">
+</div>
+
+<button class="btn-green" onclick="addMeal()">
+Add Meals
+</button>
+
+</div>
+
+<!-- BAZAR -->
+<div class="card">
+
+<h2>Add Bazar</h2>
+
+<input type="text" id="bazarItem" placeholder="Item name">
+
+<input type="number" id="bazarCost" placeholder="Cost">
+
+<button class="btn-green" onclick="addBazar()">
+Add Bazar
+</button>
+
+<div id="bazarList"></div>
+
+</div>
+
+<!-- SUMMARY -->
+<div class="card">
+
+<h2>Summary</h2>
+
+<div id="summary"></div>
+
+</div>
+
+<!-- PEOPLE -->
+<div class="card">
+
+<h2>People List</h2>
+
+<div id="peopleList"></div>
+
+</div>
+
+</div>
+
+<script>
+
+let people = JSON.parse(localStorage.getItem("people")) || [];
+
+let bazars = JSON.parse(localStorage.getItem("bazars")) || [];
+
+function saveData(){
+
+    localStorage.setItem("people", JSON.stringify(people));
+
+    localStorage.setItem("bazars", JSON.stringify(bazars));
+}
+
+function addPerson(){
+
+    const name = document.getElementById("personName").value;
+
+    if(name.trim() === ""){
+        alert("Enter name");
+        return;
+    }
+
+    people.push({
+        name:name,
+        deposit:0,
+        meals:0
+    });
+
+    document.getElementById("personName").value = "";
+
+    saveData();
+
+    render();
+}
+
+function depositMoney(){
+
+    const index = document.getElementById("depositPerson").value;
+
+    const amount = parseFloat(
+        document.getElementById("depositAmount").value
+    );
+
+    if(isNaN(amount) || amount <= 0){
+        alert("Invalid amount");
+        return;
+    }
+
+    people[index].deposit += amount;
+
+    document.getElementById("depositAmount").value = "";
+
+    saveData();
+
+    render();
+}
+
+function addMeal(){
+
+    const index = document.getElementById("mealPerson").value;
+
+    const b = parseFloat(document.getElementById("breakfast").value) || 0;
+
+    const l = parseFloat(document.getElementById("lunch").value) || 0;
+
+    const d = parseFloat(document.getElementById("dinner").value) || 0;
+
+    const total = b + l + d;
+
+    people[index].meals += total;
+
+    document.getElementById("breakfast").value = 0;
+    document.getElementById("lunch").value = 0;
+    document.getElementById("dinner").value = 0;
+
+    saveData();
+
+    render();
+}
+
+function addBazar(){
+
+    const item = document.getElementById("bazarItem").value;
+
+    const cost = parseFloat(
+        document.getElementById("bazarCost").value
+    );
+
+    if(item.trim() === "" || isNaN(cost)){
+        alert("Enter valid data");
+        return;
+    }
+
+    bazars.push({
+        item:item,
+        cost:cost
+    });
+
+    document.getElementById("bazarItem").value = "";
+    document.getElementById("bazarCost").value = "";
+
+    saveData();
+
+    render();
+}
+
+function deletePerson(index){
+
+    if(confirm("Delete this person?")){
+
+        people.splice(index,1);
+
+        saveData();
+
+        render();
+    }
+}
+
+function editPerson(index){
+
+    const newName = prompt(
+        "Edit Name",
+        people[index].name
+    );
+
+    if(newName === null || newName.trim() === ""){
+        return;
+    }
+
+    people[index].name = newName;
+
+    saveData();
+
+    render();
+}
+
+function deleteBazar(index){
+
+    if(confirm("Delete this bazar item?")){
+
+        bazars.splice(index,1);
+
+        saveData();
+
+        render();
+    }
+}
+
+function render(){
+
+    const peopleList = document.getElementById("peopleList");
+
+    const summary = document.getElementById("summary");
+
+    const bazarList = document.getElementById("bazarList");
+
+    const depositSelect = document.getElementById("depositPerson");
+
+    const mealSelect = document.getElementById("mealPerson");
+
+    peopleList.innerHTML = "";
+
+    summary.innerHTML = "";
+
+    bazarList.innerHTML = "";
+
+    depositSelect.innerHTML = "";
+
+    mealSelect.innerHTML = "";
+
+    let totalDeposit = 0;
+
+    let totalMeals = 0;
+
+    let totalBazar = 0;
+
+    people.forEach((person,index)=>{
+
+        totalDeposit += person.deposit;
+
+        totalMeals += person.meals;
+
+        const div = document.createElement("div");
+
+        div.className = "person";
+
+        div.innerHTML = `
+            <div>
+                <h3>${person.name}</h3>
+                <div class="small">
+                    Deposit: ৳${person.deposit}
+                </div>
+                <div class="small">
+                    Meals: ${person.meals}
+                </div>
+            </div>
+
+            <div class="actions">
+
+                <button class="btn-green"
+                onclick="editPerson(${index})">
+                Edit
+                </button>
+
+                <button class="btn-red"
+                onclick="deletePerson(${index})">
+                Delete
+                </button>
+
+            </div>
+        `;
+
+        peopleList.appendChild(div);
+
+        depositSelect.innerHTML += `
+            <option value="${index}">
+                ${person.name}
+            </option>
+        `;
+
+        mealSelect.innerHTML += `
+            <option value="${index}">
+                ${person.name}
+            </option>
+        `;
+    });
+
+    bazars.forEach((bazar,index)=>{
+
+        totalBazar += bazar.cost;
+
+        const div = document.createElement("div");
+
+        div.className = "summary";
+
+        div.innerHTML = `
+            <strong>${bazar.item}</strong>
+            - ৳${bazar.cost}
+
+            <button class="btn-red"
+            style="float:right"
+            onclick="deleteBazar(${index})">
+            Delete
+            </button>
+        `;
+
+        bazarList.appendChild(div);
+    });
+
+    summary.innerHTML = `
+        <div class="summary">
+            <strong>Total Deposit:</strong>
+            ৳${totalDeposit}
+        </div>
+
+        <div class="summary">
+            <strong>Total Meals:</strong>
+            ${totalMeals}
+        </div>
+
+        <div class="summary">
+            <strong>Total Bazar:</strong>
+            ৳${totalBazar}
+        </div>
+
+        <div class="summary">
+            <strong>Meal Rate:</strong>
+            ৳${totalMeals > 0 ? 
+                (totalBazar / totalMeals).toFixed(2)
+                : 0}
+        </div>
+    `;
+}
+
+render();
+
+</script>
+
+</body>
+</html>
